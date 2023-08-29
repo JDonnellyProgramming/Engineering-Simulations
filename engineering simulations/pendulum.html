@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pendulum</title>
+    <style>
+         * {
+            margin: 0;
+            padding: 0;
+         }
+        .title {
+            position: fixed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 78px;
+            background-color: #D3D3D3;
+            z-index: 1000;
+        }
+        .menu-icon {
+            position: absolute;
+            right: 20px;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .menu-icon:hover {
+            color: white;
+            cursor: pointer;
+            transition: 0.4s ease;
+        }
+        h1 {
+            color: black;
+            font-size: 32px;
+        }
+        h1 > span {
+            display: inline-block;
+            transform-origin: center;
+            transition: transform 0.1s ease;
+        }
+        
+         .content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            margin: 0;
+         }
+
+         .game-screen {
+            width: 700px;
+            height: 500px;
+            background-color: #d0d0d0;
+            position: relative;
+            border: 4px solid #333;
+         }
+         .pendulum {
+            width: 4px;
+            height: 200px;
+            background-color: #333;
+            position: relative;
+            margin: 0 auto;
+            transform-origin: top center;
+         }
+         .ball {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #007bff;
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+         }
+         /* Styling for the slider */
+         .slider-container {
+            width: 700px; /* Set the same width as the game-screen */
+            max-width: 100%;
+            margin-top: 20px; /* Add some space between the game-screen and slider */
+            box-sizing: border-box;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+         }
+         .slider {
+            width: 80%;
+            max-width: 500px;
+         }
+         .the-value {
+            margin-top: 10px;
+         }
+         .show-graph {
+            width: 200px;
+            height: 20px;
+         }
+         .graph-wrapper {
+            display: none;
+            margin-top: 20px;
+            align-items: center;
+            justify-content: center;
+            
+         }
+         .graph-container {
+            position: absolute;
+            top: 800px;
+            width: 700px;
+            height: 500px;
+            border: 4px solid #333;
+            background-color: #d0d0d0;
+         }
+         .x-axis {
+            position: absolute;
+            margin-top: 250px;
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 0px;
+         }
+         .y-axis {
+            position: absolute;
+            left: 350px;
+            font-size: 21px;
+            font-weight: bold;
+            letter-spacing: 0px;
+         }
+         .graph-content {
+            position: absolute;
+            top: 250px;
+         }
+         .graph-content-red {
+            position: absolute;
+            top: 250px;
+         }
+         .menu-content {
+            position: fixed;
+            width: 340px;
+            height: 0px;
+            border: 2px solid black;
+            right: 0;
+         }
+         .menu-item {
+            display: none;
+            text-align: center;
+            margin-top: 30px;
+         }
+         .menu-item:hover {
+            opacity: 0.7;
+            cursor: pointer;
+         }
+         .menu-item-hr {
+            display: none;
+            width: 0%;
+            height: 2px;
+            background-color: black;
+         }
+         .search-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+         }
+         .search-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+         }
+         .search-input {
+            width: 300px;
+            padding: 8px;
+            margin-right: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+         }
+         .search-input:active {
+            border: none;
+            outline: none;
+         }
+         .search-close {
+            padding: 8px 20px;
+            border: none;
+            background-color: #007bff;
+            color: #fff;
+            border-radius: 5px;
+            cursor: pointer; 
+         }
+         .search-close:hover {
+            background-color: #0056b3;
+         }
+         .search-results {
+            display: none;
+            flex-direction: column;
+            position: relative;
+            top: 500px;
+            left: 28%;
+            width: 400px;
+            height: 100px;
+            background-color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            z-index: 100000;
+         }
+         .search-results li {
+            text-decoration: none;
+         }
+         .search-results li:hover {
+            color: gold;
+            cursor: pointer;
+         }
+         .search-results a {
+            text-decoration: none;
+            color: black;
+         }
+         .learn-click-wrapper {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            bottom: 120px;
+         }
+         .learn-btn {
+            border: 1px solid black;
+            padding: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+         }
+         .learn-btn:hover {
+            opacity: 0.8;
+            border-color: gold;
+         }
+    </style>
+</head>
+<body>
+    <div class="search-overlay">
+    <div class="search-container">
+        <input type="text" class="search-input" placeholder="search">
+        <button class="search-close" onclick="closeSearch()">Close</button>
+    </div>
+</div>
+<ul class="search-results">
+    <li>pendulum</li>
+    <li><a href="draw-page.html">draw</a></li>
+    <li>submarine</li>
+    <li>nuclear explosion</li>
+    <li>physics</li>
+    <li>double pendulum</li>
+</ul>
+    <div class="title">
+        <h1>
+            <span>E</span><span>n</span><span>g</span><span>i</span><span>n</span><span>e</span><span>e</span><span>r</span><span>i</span><span>n</span><span>g</span>&nbsp;<span>S</span><span>i</span><span>m</span><span>u</span><span>l</span><span>a</span><span>t</span><span>i</span><span>o</span><span>n</span><span>s</span>
+    </h1>
+    <div class="menu-icon">|||</div>
+    </div>
+    <div class="menu-content">
+        <span class="menu-item">Help<hr class="menu-item-hr"></span>
+        <span class="menu-item">Account<hr class="menu-item-hr"></span>
+        <span class="menu-item">Simulations<hr class="menu-item-hr"></span>
+        <span class="menu-item">Learn<hr class="menu-item-hr"></span>
+        <span class="menu-item" onclick="searchFuncOpen()">Search<hr class="menu-item-hr"></span>
+        <span class="menu-item">Contact<hr class="menu-item-hr"></span>
+    </div>
+    <div class="content">
+    <div class="game-screen">
+    <div class="pendulum" id="pendulum1">
+        <div class="ball"></div>
+    </div>
+    </div>
+    <div class="slider-container">
+        <input type="range" min="0" max="400" value="200" class="slider">
+        <div class="the-value"><span class="value-num">200</span></div>
+    </div>
+    <button class="show-graph" onclick="showGraph()">Show Live Graph</button>
+    <div class="graph-wrapper">
+    <div class="graph-container">
+        <div class="x-axis"></div>
+        <div class="y-axis"></div>
+        <div class="graph-content">.</div>
+        <div class="graph-content-red"></div>
+    </div>
+    </div>
+    </div>
+    <div class="learn-click-wrapper">
+    <label class="learn-btn">Learn</label>
+    </div>
+    <script>
+        const searchResults = document.querySelector(".search-results");
+        const searchContainer = document.querySelector(".search-container");
+        const searchOverlay = document.querySelector('.search-overlay');
+        const searchInput = document.querySelector('.search-input');
+        const pendulum = document.querySelector('.pendulum');
+        const Slider = document.querySelector(".slider");
+        const graphWrapper = document.querySelector(".graph-wrapper");
+        const graphContent = document.querySelector(".graph-content");
+        const graphContentRed = document.querySelector(".graph-content-red");
+        const menuIcon = document.querySelector(".menu-icon");
+        const menuContent = document.querySelector(".menu-content");
+        const menuItem = document.querySelectorAll(".menu-item");
+        const hrElements = document.querySelectorAll(".menu-item-hr");
+        const valueNum = document.querySelector(".value-num");
+        const Title = document.querySelector("h1");
+        const xAxis = document.querySelector(".x-axis");
+        const yAxis = document.querySelector(".y-axis");
+        const learnClickWrapper = document.querySelector('.learn-click-wrapper');
+        const learnBtn = document.querySelector('.learn-btn');
+        let graphOpen = false;
+        let newNumValue = 200;
+        let L = 200;
+        let t = 0;
+        let maxAngle = -20;
+        let w = (9.81/L)**0.5;
+        let xAxisContent = "";
+        let yAxisContent = "";
+        let contentStuff = "";
+        let interval3;
+        let menuOpen = false;
+        let searchItems = ['pendulum', 'draw', 'submarine', 'nuclear explosion',
+    'physics', 'double pendulum'];
+
+        Slider.addEventListener("change", updatePendulumLength);
+
+        Title.addEventListener("mouseenter", handleTitleHover);
+        Title.addEventListener("mouseleave", handleTitleLeave);
+        searchInput.addEventListener('input', searchFunc);
+        let newHeight = 0;
+        function searchFunc() {
+            const searchQuery = searchInput.value.toLowerCase().trim();
+            const listItems = searchResults.getElementsByTagName('li');
+            if (searchQuery.length > 0) {
+                searchResults.style.display = 'flex';
+            }
+
+            for (let i = 0; i < listItems.length; i++) {
+                const itemText = listItems[i].textContent.toLowerCase();
+                 
+                if (searchQuery.length < 1) {
+                      listItems[i].style.display = 'none';
+                }
+                else if (itemText.includes(searchQuery)) {
+                    listItems[i].style.display = 'list-item';
+                }
+                else {
+                    listItems[i].style.display = 'none';
+                }
+                
+            }
+
+        }
+        function closeSearch() {
+            searchOverlay.style.display = 'none';
+            searchResults.style.display = 'none';
+            document.body.style.backgroundColor = '#f0f0f0';
+            searchInput.value = '';
+        }
+        function searchFuncOpen() {
+            searchOverlay.style.display = 'flex';
+            document.body.style.backgroundColor = '#f0f0f0';
+            searchInput.value = '';
+            const listItems = searchResults.getElementsByTagName('li');
+            for (let i = 0; i < listItems.length; i++) {
+        listItems[i].style.display = 'none';
+        }
+    }
+
+        function handleTitleHover() {
+            interval3 = setInterval(titleAnimate, 10);
+            console.log('working');
+        }
+        function handleTitleLeave() {
+            clearInterval(interval3);
+            let spans = Title.querySelectorAll("h1 > span");
+            for (let i = 0; i < spans.length; i++) {
+                spans[i].style.transform = `rotate(0deg)`;
+            }
+
+        }
+        function titleAnimate() {
+            let spans = Title.querySelectorAll("h1 > span");
+            console.log('animate');
+  for (let i = 0; i < spans.length; i++) {
+    const angle = Math.sin((t + i * 0.1) * 0.5) * 10;
+    spans[i].style.transform = `rotate(${angle}deg)`;
+  }
+}
+
+menuIcon.addEventListener("click", operateMenu);
+let menuHeight = 0;
+let interval4;
+let timeControl = 0;
+let count = 0;
+let readyToMove = false;
+let interval5;
+function operateMenu() {
+    console.log('clicked');
+      if (menuOpen == false && timeControl < 20) {
+        clearInterval(interval5);
+        interval4 = setInterval(function() {
+         menuOpen = true;
+         menuHeight += 10;
+         timeControl += 1;
+         console.log(timeControl);
+         menuContent.style.height = menuHeight + "px";
+        
+        if (timeControl % 10 == 0) {
+            menuItem[count].classList.add(`menu-item-${count+1}`);
+            menuItem[count].style.display = 'block';
+            menuItem[count].style.marginTop = `${80}px`;
+            menuItem[count].addEventListener('mouseenter', menuItemHover);
+            menuItem[count].addEventListener('mouseleave', menuItemLeave);
+            count += 1;
+        }
+      
+         console.log(timeControl);
+         if (timeControl >= 60) {
+        clearInterval(interval4);
+        timeControl = 0;
+        menuHeight = 600;
+        menuContent.style.height = menuHeight + "px";
+        readyToMove = true;
+        count = menuItem.length;
+      }
+        }, 20);   
+      }
+      if (menuOpen == true && readyToMove == true) {
+        clearInterval(interval4);
+        interval5 = setInterval(function() {
+            menuOpen = false;
+            readyToMove = false;
+            menuHeight -= 10;
+            timeControl += 1;
+            menuContent.style.height = menuHeight + "px";
+            if (timeControl % 6 == 0) {
+                menuItem[count-1].classList.remove(`menu-item-${count}`);
+                menuItem[count-1].style.display = 'none';
+                menuItem[count-1].style.marginTop = '';
+                count -= 1;
+            }
+            if (timeControl >= 60) {
+                 clearInterval(interval5);
+                 timeControl = 0;
+                 readyToMove = true;
+                 menuHeight = 0;
+                 menuContent.style.height = menuHeight + "px";
+                 count = 0;
+            }
+        }, 20);
+      }
+      
+}
+let interval6;
+let hrWidth = 0;
+function menuItemHover(event) {
+    const currentItem = event.target;
+    if (currentItem.classList.contains("menu-item")) {
+        const index = Array.from(menuItem).indexOf(currentItem);
+        if (index >= 0 && index < hrElements.length) {
+            hrElements[index].style.display = 'block';
+            if (hrWidth <= 100 ) {
+            interval6 = setInterval(function() {
+                 hrWidth += 1;
+                 hrElements[index].style.width = hrWidth + "%";
+            }, 10);
+        }
+        else {
+            clearInterval(interval6);
+            hrWidth = 0;
+        }
+        }
+    }
+}
+
+function menuItemLeave() {
+    const currentItem = event.target;
+    if (currentItem.classList.contains("menu-item")) {
+        const index = Array.from(menuItem).indexOf(currentItem);
+        if (index >= 0 && index < hrElements.length) {
+            hrElements[index].style.display = 'none';
+        }
+    }
+    hrWidth = 0;
+    clearInterval(interval6);
+}
+        function updatePendulumLength() {
+                L = parseFloat(Slider.value);
+                valueNum.textContent = L;
+                pendulum.style.height = L + "px";
+        }
+        
+        function showGraph() {
+             if (graphOpen == false) {
+                graphWrapper.style.display = 'flex';
+                graphOpen = true;
+                xAxisContent = "";
+                yAxisContent = "";
+                learnClickWrapper.style.bottom = '0px';
+                learnClickWrapper.style.marginTop = '400px';
+                for (let i = 0; i < 75; i++) {
+                     xAxisContent += "-";
+                     xAxis.textContent = xAxisContent;
+                }
+                for (let j = 0; j < 20; j++) {
+                    yAxisContent += "|  <br>";
+                    yAxis.innerHTML = yAxisContent;
+                }
+                startPlotting();
+             }
+             else {
+                graphWrapper.style.display = 'none';
+                graphOpen = false;
+                learnClickWrapper.style.bottom = '120px';
+                learnClickWrapper.style.marginTop = '0px';
+             }
+        }
+        let k = 0;
+        let numberDivs = 0;
+        let displacementX = 0;
+        function startPlotting() {
+    // Reset the horizontal position (x-axis) to start from the left side
+    interval2 = setInterval(function() {
+        if (numberDivs < 700) {
+            const newDiv = document.createElement('div');
+            newDiv.style.top = newAngle + "px";
+            newDiv.style.left = k + "px";
+            newDiv.style.position = "absolute";
+            newDiv.textContent = ".";
+            graphContent.appendChild(newDiv);
+
+            const newDivRed = document.createElement('div');
+            newDivRed.style.top = displacementX + "px";
+            newDivRed.style.left = k + "px";
+            newDivRed.style.position = "absolute";
+            newDivRed.style.color = "red";
+            newDivRed.textContent = ".";
+            graphContentRed.appendChild(newDivRed);
+            k += 1;
+            numberDivs += 1;
+        } else {
+            clearInterval(interval2);
+            graphContent.innerHTML = '';
+            graphContentRed.innerHTML = '';
+            numberDivs = 0;
+            k = 0
+            startPlotting(); // Restart the plotting process
+        }
+    }, 10);
+}
+
+function onSliderChange() {
+            t = 0;
+            updatePendulumLength();
+            swingPendulum();
+        }
+        
+function swingPendulum() {
+            t += 0.1;
+            newAngle = maxAngle*Math.cos(w * t);
+            displacementX = L * Math.sin(newAngle * (Math.PI / 180));
+            pendulum.style.transform = `rotate(${newAngle}deg)`;
+        }
+        const interval = setInterval(swingPendulum, 10);
+learnContentCount = 0;
+learnBtn.addEventListener('click', openLearnContent);
+
+function openLearnContent() {
+    learnContentCount += 1;
+    if (learnContentCount % 2 != 0) {
+        learnOpenAnimate();
+    }
+    else {
+        learnCloseAnimate();
+    }
+}
+    </script>
+</body>
+</html>
